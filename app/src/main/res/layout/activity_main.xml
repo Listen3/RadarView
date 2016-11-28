@@ -8,17 +8,39 @@
     tools:context="com.example.neb.radarviewdemo.MainActivity">
 
 
-    <com.amap.api.maps2d.MapView
-        android:id="@+id/map"
+    <!-- <com.amap.api.maps2d.MapView
+         android:id="@+id/map"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:elevation="1dp">-->
+    <LinearLayout
+        android:id="@+id/ll_search"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:elevation="1dp">
+        android:layout_height="wrap_content"
+        android:elevation="5dp"
+        android:orientation="horizontal">
 
-        <com.example.neb.radarviewdemo.view.RadarView
-            android:id="@+id/radarView"
-            android:layout_width="80dp"
-            android:layout_height="80dp" />
+        <EditText
+            android:id="@+id/editQuery"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1" />
 
-    </com.amap.api.maps2d.MapView>
+        <Button
+            android:id="@+id/bt_search"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:onClick="searchPOI"
+            android:text="搜索" />
+    </LinearLayout>
+
+    <com.example.neb.radarviewdemo.view.RadarView
+        android:id="@+id/radarView"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/ll_search"
+        android:elevation="5dp" />
+
 
 </RelativeLayout>
