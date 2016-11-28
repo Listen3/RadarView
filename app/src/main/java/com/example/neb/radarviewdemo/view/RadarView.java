@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -28,8 +28,6 @@ public class RadarView extends View implements SensorEventListener {
 
     private Context mContext;
     private Paint mPaint;
-    private Bitmap mDefaultPointBmp;// 标识设备的圆点-默认
-    private Bitmap mLightPointBmp;// 标识设备的圆点-高亮
     private int mPointCount = 0;// 圆点总数
     private List<String> mPointArray = new ArrayList<String>();// 存放Point
     private int mWidth, mHeight;// 宽高
@@ -58,8 +56,6 @@ public class RadarView extends View implements SensorEventListener {
 
     /**
      * 初始化
-     *
-     * @return void
      */
     private void init(Context context) {
         mPaint = new Paint();
@@ -69,14 +65,6 @@ public class RadarView extends View implements SensorEventListener {
         registerListener(sensor_orientation);
     }
 
-    /**
-     * 提供注册监听方法
-     *
-     * @param sensor_orientation
-     */
-    private void registerListener(Sensor sensor_orientation) {
-        sensorManager.registerListener(this, sensor_orientation, SensorManager.SENSOR_DELAY_FASTEST);
-    }
 
     /**
      * 测量视图及其内容,以确定所测量的宽度和高度(测量获取控件尺寸).
@@ -112,16 +100,22 @@ public class RadarView extends View implements SensorEventListener {
         //坐标点数为0时绘制一次即可，减少资源占用
         //绘制圆线
         drawCircle(canvas);
-        //绘制对角线
-        //drawLine(canvas);
         canvas.save();
-        // 绘制扫描扇形图
-        //drawScan(canvas);
         canvas.restore();
         // 绘制点
         mPaint.setAlpha(255);
         drwaPoint(canvas);
 
+    }
+
+    /**
+     * 绘制扇形区域
+     *
+     * @param canvas
+     */
+    private void drawFan(Canvas canvas) {
+       /* RectF oval2 = new RectF(60, 100, 200, 240);// 设置个新的长方形，扫描测量
+        canvas.drawArc(oval2, 270 - 22.5f, 45, true, mPaint);*/
     }
 
 
@@ -152,8 +146,6 @@ public class RadarView extends View implements SensorEventListener {
 
     /**
      * 绘制点
-     *
-     * @param canvas
      */
     private void drwaPoint(Canvas canvas) {
         if (mPointCount > 0) {// 当圆点总数>0时,进入下一层判断
@@ -203,8 +195,6 @@ public class RadarView extends View implements SensorEventListener {
 
     /**
      * 监听方向传感器的X值，按中心点逆旋转RadarView
-     *
-     * @param event
      */
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -217,6 +207,13 @@ public class RadarView extends View implements SensorEventListener {
     }
 
     /**
+     * 提供注册监听方法
+     */
+    private void registerListener(Sensor sensor_orientation) {
+        sensorManager.registerListener(this, sensor_orientation, SensorManager.SENSOR_DELAY_FASTEST);
+    }
+
+    /**
      * 暴露移除监听的方法，在Activity的销毁或失去焦点时调用
      */
     public void unregisterListenter() {
@@ -226,7 +223,7 @@ public class RadarView extends View implements SensorEventListener {
     /**
      * 根据POI绘制点
      *
-     * @param poi        poi坐标
+     * @param poi        poi
      * @param myLocation 自身坐标
      */
     public void addPoint(PoiItem poi, LatLonPoint myLocation) {
@@ -312,11 +309,9 @@ public class RadarView extends View implements SensorEventListener {
             m_LoDeg = (int) longitude;
             m_LoMin = (int) ((longitude - m_LoDeg) * 60);
             m_LoSec = (longitude - m_LoDeg - m_LoMin / 60.) * 3600;
-
             m_LaDeg = (int) latitude;
             m_LaMin = (int) ((latitude - m_LaDeg) * 60);
             m_LaSec = (latitude - m_LaDeg - m_LaMin / 60.) * 3600;
-
             m_Longitude = longitude;
             m_Latitude = latitude;
             m_RadLo = longitude * Math.PI / 180.;
@@ -324,5 +319,13 @@ public class RadarView extends View implements SensorEventListener {
             Ec = Rj + (Rc - Rj) * (90. - m_Latitude) / 90.;
             Ed = Ec * Math.cos(m_RadLa);
         }
+    }
+
+    /**
+     * 清空poi点
+     */
+    public void clearPOI() {
+        mPointArray.clear();
+        mPointCount = 0;
     }
 }

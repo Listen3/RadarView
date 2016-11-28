@@ -1,9 +1,14 @@
 package com.example.neb.radarviewdemo;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.amap.api.maps2d.AMap;
 import com.amap.api.maps2d.AMapOptions;
@@ -22,7 +27,13 @@ import com.example.neb.radarviewdemo.view.RadarView;
 
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity implements PoiSearch.OnPoiSearchListener {
+    EditText editQuery;
+    @BindView(R.id.bt_search)
+    Button btSearch;
     private RelativeLayout activity_main;
     private MapView mapView;
     private AMap aMap;
@@ -45,26 +56,34 @@ public class MainActivity extends AppCompatActivity implements PoiSearch.OnPoiSe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
         activity_main = (RelativeLayout) findViewById(R.id.activity_main);
         radarView = (RadarView) findViewById(R.id.radarView);
-        AMapOptions aMapOptions = new AMapOptions();
+        editQuery = (EditText) findViewById(R.id.editQuery);
         //设置初始坐标
+        AMapOptions aMapOptions = new AMapOptions();
         aMapOptions.camera(new CameraPosition(centerpoint, 10f, 0, 0));
         //mapView = (MapView) findViewById(R.id.map);
         mapView = new MapView(this, aMapOptions);
         mapView.onCreate(savedInstanceState);
         init();
         showMarker(centerpoint);
-        doSearchQuery("网咖");
-
-
+        //doSearchQuery("网咖");
     }
 
+    /**
+     * 标注当前位置
+     *
+     * @param centerpoint
+     */
     private void showMarker(LatLng centerpoint) {
         //标注点
+        if (marker != null) {
+            marker.destroy();
+        }
         marker = aMap.addMarker(new MarkerOptions()
                 .position(centerpoint)
-                .title("自身位置")
+                .title("温馨人家")
                 .icon(BitmapDescriptorFactory
                         .defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                 .draggable(true));
@@ -90,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements PoiSearch.OnPoiSe
      *      
      */
     protected void doSearchQuery(String keyWord) {
+        //aMap.clear();
         int currentPage = 0;
         query = new PoiSearch.Query(keyWord, "", "杭州市");
         query.setPageSize(10);// 设置每页最多返回多少条poiitem
@@ -102,9 +122,9 @@ public class MainActivity extends AppCompatActivity implements PoiSearch.OnPoiSe
 
     @Override
     public void onPoiSearched(PoiResult poiResult, int i) {
-
         pois = poiResult.getPois();
-        //aMap.clear();// 清理之前的图标
+        aMap.clear();// 清理之前的图标
+        radarView.clearPOI();//清空poi
         PoiOverlay poiOverlay = new PoiOverlay(aMap, pois);
         poiOverlay.removeFromMap();
         poiOverlay.addToMap();
@@ -129,50 +149,13 @@ public class MainActivity extends AppCompatActivity implements PoiSearch.OnPoiSe
         }
         RadarView.MyLatLng A = new RadarView.MyLatLng(latLonPoint.getLongitude(), latLonPoint.getLatitude());
         //radarView.addPoint(A, A, pois.get(0));
+        showMarker(centerpoint);
 
     }
 
     @Override
     public void onPoiItemSearched(PoiItem poiItem, int i) {
         System.out.println(poiItem.getAdName() + "=====");
-    }
-
-    /**
-     * 计算两点角度
-     *
-     * @param x1
-     * @param x2
-     * @param y1
-     * @param y2
-     * @return
-     */
-    public int getAngle(int x1, int x2, int y1, int y2) {
-        int x = Math.abs(x1 - x2);
-        int y = Math.abs(y1 - y2);
-        double z = Math.sqrt(x * x + y * y);
-        int angle = Math.round((float) (Math.asin(y / z) / Math.PI * 180));//最终角度
-        return angle;
-    }
-
-    /**
-     *  
-     *      * 
-     *      * @param lat_a 纬度1 
-     *      * @param lng_a 经度1 
-     *      * @param lat_b 纬度2 
-     *      * @param lng_b 经度2 
-     *      * @return 
-     *      
-     */
-    private double getAngle1(double lat_a, double lng_a, double lat_b, double lng_b) {
-        double y = Math.sin(lng_b - lng_a) * Math.cos(lat_b);
-        double x = Math.cos(lat_a) * Math.sin(lat_b) - Math.sin(lat_a) * Math.cos(lat_b) * Math.cos(lng_b - lng_a);
-        double brng = Math.atan2(y, x);
-
-        brng = Math.toDegrees(brng);
-        if (brng < 0)
-            brng = brng + 360;
-        return brng;
     }
 
 
@@ -212,4 +195,14 @@ public class MainActivity extends AppCompatActivity implements PoiSearch.OnPoiSe
         radarView.unregisterListenter();
         mapView.onDestroy();
     }
+
+    public void searchPOI(View view) {
+        String keyWord = editQuery.getText().toString();
+        if (TextUtils.isEmpty(keyWord)) {
+            Toast.makeText(MainActivity.this, "不能为空", Toast.LENGTH_SHORT).show();
+        } else {
+            doSearchQuery(keyWord);
+        }
+    }
+
 }
